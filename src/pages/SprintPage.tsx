@@ -1,76 +1,97 @@
+import {
+  DndContext,
+  useDraggable,
+  useDroppable,
+} from "@dnd-kit/core";
 import { useSprintStore } from "../store/sprintStore";
 
-const statuses = ["backlog", "todo", "in_progress", "done"] as const;
+/*СТРАНИЦА АКТИВНОГО СПРИНТА
+   (KANBAN + DRAG & DROP)*/
+export default function ActiveSprintPage() {
+  const tasks = useSprintStore((s) => s.tasks);
+  const moveTask = useSprintStore((s) => s.moveTask);
 
-const statusNames: Record<string, string> = {
-  backlog: "Бэклог",
-  todo: "К выполнению",
-  in_progress: "В работе",
-  done: "Готово",
-};
+  /*ОБРАБОТКА ПЕРЕТАСКИВАНИЯ*/
+  const handleDragEnd = (event: any) => {
+    const { active, over } = event;
 
-export default function SprintPage() {
-  const { tasks, moveTask } = useSprintStore();
+    // если некуда бросили — выходим
+    if (!over) return;
+
+    // меняем статус задачи
+    moveTask(active.id, over.id);
+  };
 
   return (
-    <div>
-      <h1 style={{ marginBottom: 20 }}>Активный спринт</h1>
-
+    <DndContext onDragEnd={handleDragEnd}>
       <div style={board}>
-        {statuses.map(status => (
-          <div key={status} style={column}>
-            <div style={columnHeader}>
-              {statusNames[status]}
-            </div>
-
-            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-              {tasks
-                .filter(t => t.status === status)
-                .map(task => (
-                  <div
-                    key={task.id}
-                    onClick={() => moveTask(task.id, status)}
-                    style={cardTask}
-                  >
-                    <div style={{ fontWeight: 600 }}>{task.title}</div>
-                    <div style={{ fontSize: 12, opacity: 0.6 }}>
-                      {task.subtitle}
-                    </div>
-                  </div>
-                ))}
-            </div>
-          </div>
-        ))}
+        <Column id="backlog" title="Бэклог" tasks={tasks} />
+        <Column id="in_progress" title="В работе" tasks={tasks} />
+        <Column id="done" title="Готово" tasks={tasks} />
       </div>
+    </DndContext>
+  );
+}
+
+/*КОЛОНКА КАНБАНА*/
+function Column({ id, title, tasks }: any) {
+  const { setNodeRef } = useDroppable({ id });
+
+  return (
+    <div ref={setNodeRef} style={column}>
+      <h3>{title}</h3>
+
+      {tasks
+        .filter((t: any) => t.status === id)
+        .map((task: any) => (
+          <TaskCard key={task.id} task={task} />
+        ))}
     </div>
   );
 }
 
+/*КАРТОЧКА ЗАДАЧИ*/
+function TaskCard({ task }: any) {
+  const { attributes, listeners, setNodeRef, transform } =
+    useDraggable({
+      id: task.id,
+    });
+
+  const style = {
+    transform: transform
+      ? `translate(${transform.x}px, ${transform.y}px)`
+      : undefined,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      {...listeners}
+      {...attributes}
+      style={{ ...card, ...style }}
+    >
+      <b>{task.title}</b>
+    </div>
+  );
+}
+
+/*СТИЛИ*/
 const board = {
-  display: "grid",
-  gridTemplateColumns: "repeat(4, 1fr)",
-  gap: 12,
+  display: "flex",
+  gap: 16,
 };
 
 const column = {
-  background: "rgba(255,255,255,0.03)",
-  border: "1px solid rgba(255,255,255,0.06)",
-  borderRadius: 16,
-  padding: 12,
-  minHeight: 500,
-};
-
-const columnHeader = {
-  fontSize: 12,
-  opacity: 0.6,
-  marginBottom: 10,
-  letterSpacing: 1,
-};
-
-const cardTask = {
+  flex: 1,
   padding: 12,
   borderRadius: 12,
-  background: "rgba(255,255,255,0.05)",
-  border: "1px solid rgba(255,255,255,0.08)",
-  cursor: "pointer",
+  background: "rgba(255,255,255,0.03)",
+};
+
+const card = {
+  marginTop: 10,
+  padding: 10,
+  borderRadius: 10,
+  background: "rgba(255,255,255,0.06)",
+  cursor: "grab",
 };

@@ -1,5 +1,6 @@
 @use "./variables" as *;
 
+/*БАЗА*/
 body {
   margin: 0;
   font-family: Inter, system-ui, sans-serif;
@@ -7,7 +8,7 @@ body {
   color: #e5e7eb;
 }
 
-/* smooth UI base */
+/* базовый reset */
 * {
   box-sizing: border-box;
 }
@@ -17,24 +18,28 @@ a {
   text-decoration: none;
 }
 
-/* inputs (Jira style) */
-input, textarea {
+/*INPUTS (JIRA STYLE)*/
+input,
+textarea,
+select {
   width: 100%;
   padding: 10px 12px;
   border-radius: 10px;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   color: white;
   outline: none;
   transition: 0.2s;
 }
 
-input:focus, textarea:focus {
+input:focus,
+textarea:focus,
+select:focus {
   border-color: #6366f1;
-  box-shadow: 0 0 0 3px rgba(99,102,241,0.2);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
 }
 
-/* buttons (Jira primary style) */
+/*BUTTONS*/
 button {
   background: linear-gradient(135deg, #6366f1, #7c3aed);
   border: none;
@@ -51,13 +56,77 @@ button:hover {
   filter: brightness(1.1);
 }
 
-/* scrollbars (Jira feel) */
+/*DASHBOARD GRID*/
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+
+  /* планшеты */
+  @media (max-width: 1024px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* мобильные */
+  @media (max-width: 600px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+/*KANBAN BOARD*/
+.kanban-board {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+
+  /* планшет — вертикальный стек */
+  @media (max-width: 1024px) {
+    flex-direction: column;
+  }
+}
+
+.kanban-column {
+  flex: 1;
+  min-width: 260px;
+  padding: 12px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.kanban-card {
+  margin-top: 10px;
+  padding: 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.06);
+  cursor: grab;
+  transition: 0.2s;
+}
+
+.kanban-card:hover {
+  transform: translateY(-2px);
+}
+
+/*ФОРМЫ*/
+.form {
+  max-width: 520px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.error {
+  color: #f87171;
+  font-size: 12px;
+}
+
+/*SCROLLBAR (JIRA STYLE)*/
 ::-webkit-scrollbar {
   height: 8px;
   width: 8px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(255,255,255,0.15);
+  background: rgba(255, 255, 255, 0.15);
   border-radius: 10px;
 }

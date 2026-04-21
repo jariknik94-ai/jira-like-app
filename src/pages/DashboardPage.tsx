@@ -1,28 +1,36 @@
 import { useState } from "react";
 import { useSprintStore } from "../store/sprintStore";
 
+/*ГЛАВНАЯ СТРАНИЦА (DASHBOARD)*/
 export default function DashboardPage() {
   const tasks = useSprintStore((s) => s.tasks);
   const sprints = useSprintStore((s) => s.sprints);
 
+  // текущий (последний) спринт
   const currentSprint = sprints[sprints.length - 1];
 
+  /*СОСТОЯНИЯ UI*/
   const [tab, setTab] = useState<"product" | "backlog">("backlog");
   const [userFilter, setUserFilter] = useState<"all" | "me">("all");
 
-  // 📌 фильтрация по вкладке + пользователю
+  /*ФИЛЬТРАЦИЯ ЗАДАЧ*/
   const filteredTasks = tasks.filter((t) => {
+    // вкладки
     const tabMatch =
       tab === "backlog"
         ? t.status === "backlog"
-        : true; // product пока заглушка
+        : t.status !== "backlog"; // product = все кроме backlog
 
+    // фильтр пользователя
     const userMatch =
-      userFilter === "all" ? true : t.assignee === "me";
+      userFilter === "all"
+        ? true
+        : t.assignee === "me";
 
     return tabMatch && userMatch;
   });
 
+  /*СТАТИСТИКА*/
   const stats = {
     total: tasks.length,
     backlog: tasks.filter((t) => t.status === "backlog").length,
@@ -34,47 +42,55 @@ export default function DashboardPage() {
     <div>
       <h1 style={{ marginBottom: 16 }}>Рабочий стол</h1>
 
-      {/* 📌 СПРИНТ БЛОК */}
+      {/*БЛОК СПРИНТА*/}
       {currentSprint && (
         <div style={card}>
           <h3 style={{ marginBottom: 8 }}>Текущий спринт</h3>
+
           <p><b>Название:</b> {currentSprint.name}</p>
           <p><b>Цель:</b> {currentSprint.goal}</p>
+
           <p>
             <b>Период:</b> {currentSprint.start} → {currentSprint.end}
+          </p>
+
+          <p>
+            <b>Длительность:</b> {currentSprint.duration} дн.
           </p>
         </div>
       )}
 
-      {/* 📌 ТАБЫ */}
-      <div style={{ display: "flex", gap: 10, marginTop: 20 }}>
+      {/*ВКЛАДКИ*/}
+      <div style={row}>
         <button onClick={() => setTab("product")}>
           Продукт
         </button>
+
         <button onClick={() => setTab("backlog")}>
           Бэклог
         </button>
       </div>
 
-      {/* 📌 ФИЛЬТР ПОЛЬЗОВАТЕЛЯ */}
-      <div style={{ display: "flex", gap: 10, marginTop: 10 }}>
+      {/*ФИЛЬТР ПОЛЬЗОВАТЕЛЯ*/}
+      <div style={row}>
         <button onClick={() => setUserFilter("all")}>
           Все задачи
         </button>
+
         <button onClick={() => setUserFilter("me")}>
           Только мои задачи
         </button>
       </div>
 
-      {/* 📊 СТАТИСТИКА */}
-      <div style={grid}>
+      {/*СТАТИСТИКА (АДАПТИВ ЧЕРЕЗ SCSS)*/}
+      <div className="dashboard-grid">
         <Card title="Всего задач" value={stats.total} />
         <Card title="Бэклог" value={stats.backlog} />
         <Card title="В работе" value={stats.progress} />
         <Card title="Готово" value={stats.done} />
       </div>
 
-      {/* 📌 СПИСОК ЗАДАЧ */}
+      {/*СПИСОК ЗАДАЧ*/}
       <div style={{ marginTop: 20 }}>
         <h3>Задачи</h3>
 
@@ -87,8 +103,13 @@ export default function DashboardPage() {
         {filteredTasks.map((t) => (
           <div key={t.id} style={taskCard}>
             <b>{t.title}</b>
+
             <div style={{ opacity: 0.6, fontSize: 12 }}>
               {t.subtitle}
+            </div>
+
+            <div style={{ marginTop: 6, fontSize: 12, opacity: 0.5 }}>
+              Исполнитель: {t.assignee}
             </div>
           </div>
         ))}
@@ -97,41 +118,48 @@ export default function DashboardPage() {
   );
 }
 
-/* 📌 UI компоненты */
-
+/*UI КОМПОНЕНТЫ*/
 function Card({ title, value }: any) {
   return (
     <div style={cardBox}>
-      <div style={{ opacity: 0.6, fontSize: 12 }}>{title}</div>
-      <div style={{ fontSize: 26, fontWeight: 600 }}>{value}</div>
+      <div style={{ opacity: 0.6, fontSize: 12 }}>
+        {title}
+      </div>
+
+      <div style={{ fontSize: 26, fontWeight: 600 }}>
+        {value}
+      </div>
     </div>
   );
 }
 
-/* 📌 STYLES */
+/*СТИЛИ*/
 
-const grid = {
-  display: "grid",
-  gridTemplateColumns: "repeat(4, 1fr)",
-  gap: 12,
-  marginTop: 20,
+// строки (кнопки/фильтры)
+const row: React.CSSProperties = {
+  display: "flex",
+  gap: 10,
+  marginTop: 10,
 };
 
-const card = {
+// карточка спринта
+const card: React.CSSProperties = {
   padding: 16,
   borderRadius: 14,
   background: "rgba(255,255,255,0.04)",
   border: "1px solid rgba(255,255,255,0.08)",
 };
 
-const cardBox = {
+// карточки статистики
+const cardBox: React.CSSProperties = {
   padding: 16,
   borderRadius: 14,
   background: "rgba(255,255,255,0.04)",
   border: "1px solid rgba(255,255,255,0.08)",
 };
 
-const taskCard = {
+// карточка задачи
+const taskCard: React.CSSProperties = {
   marginTop: 10,
   padding: 12,
   borderRadius: 12,
@@ -139,7 +167,8 @@ const taskCard = {
   border: "1px solid rgba(255,255,255,0.08)",
 };
 
-const empty = {
+// пустое состояние
+const empty: React.CSSProperties = {
   marginTop: 10,
   padding: 12,
   opacity: 0.6,
